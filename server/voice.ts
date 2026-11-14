@@ -71,7 +71,7 @@ export function addVoiceRoutes(app: Express, receiver: Express, transcripts: Map
       return;
     }
     const agentId = process.env.ELEVENLABS_AGENT_ID;
-    const publicUrl = process.env.PUBLIC_WEBHOOK_URL?.replace(/\/$/, '');
+    const publicUrl = (process.env.PUBLIC_WEBHOOK_URL || process.env.RENDER_EXTERNAL_URL)?.replace(/\/$/, '');
     if (!agentId || !publicUrl || !process.env.RECALL_API_KEY) {
       response.status(503).json({ error: 'Set ELEVENLABS_AGENT_ID and the Recall settings in .env, then restart the backend.' });
       return;

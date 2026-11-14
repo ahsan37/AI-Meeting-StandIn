@@ -70,7 +70,7 @@ export function addMeetingRoutes(app: Express, receiver: Express, transcripts: M
       return;
     }
 
-    const publicUrl = process.env.PUBLIC_WEBHOOK_URL?.replace(/\/$/, '');
+    const publicUrl = (process.env.PUBLIC_WEBHOOK_URL || process.env.RENDER_EXTERNAL_URL)?.replace(/\/$/, '');
     const token = process.env.RECALL_WEBHOOK_TOKEN;
     if (!publicUrl?.startsWith('https://') || !token) {
       response.status(503).json({ error: 'Set PUBLIC_WEBHOOK_URL and RECALL_WEBHOOK_TOKEN in .env, then restart the backend.' });

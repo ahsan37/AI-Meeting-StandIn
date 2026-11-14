@@ -4,6 +4,39 @@ This step uploads PDF notes, sends Ahsan AI into a meeting, and displays live
 English transcript text from ElevenLabs Scribe with speaker names and participant IDs. The local PDF preview stays in the browser. Voice takeover uses the knowledge base
 already attached to your ElevenLabs agent.
 
+## Deploy to Render
+
+Connect the whole repository as a **Node Web Service**. Leave Root Directory
+blank (the directory containing `package.json`). Use:
+
+- Build command: `npm ci --include=dev && npm run build`
+- Start command: `npm start`
+- Health check path: `/health`
+
+Add these in Render's Environment settings; do not commit `.env`:
+
+- `RECALL_API_KEY`: the same US West Recall key used locally.
+- `RECALL_WEBHOOK_TOKEN`: a long random secret used for transcript delivery.
+- `ELEVENLABS_AGENT_ID`: `agent_2801m797vxb1fj8twbdk9z7tmqn1`.
+- `ELEVENLABS_API_KEY`: only if your agent requires authentication.
+
+Leave `PUBLIC_WEBHOOK_URL` unset on Render: the app uses Render's automatically
+provided `RENDER_EXTERNAL_URL`. If you set it explicitly, use your deployed HTTPS
+URL, not the old ngrok URL. Update any ElevenLabs agent domain allowlist to include
+your Render hostname.
+
+`npm start` runs in production mode and reads environment variables from Render,
+without needing a local `.env` file. It uses `tsx` to run the backend TypeScript.
+Express serves the React build, voice page, API, and callbacks through one port
+bound to `0.0.0.0`, using Render's `PORT`. No Vite server or ngrok is needed there.
+The existing local development commands still use ports 5173, 3001, and 3002.
+
+Open the deployed URL and join a fresh meeting bot to use the new callback URL.
+Verify transcription and manual voice takeover there before testing Wi-Fi loss.
+This demo still has no login: its control UI and API are public when deployed.
+Use one service instance because transcripts and voice sessions are in memory;
+restarts and redeploys clear them. Automatic takeover is not implemented yet.
+
 ## Run locally
 
 Use Node.js 22.13 or newer. Run `npm ci` to install dependencies.
@@ -15,7 +48,7 @@ it under transcription providers in your Recall US West dashboard. Select the
 matching ElevenLabs data residency (US for a standard account). Recall uses this
 key directly; this transcription step does not need an ElevenLabs key in `.env`.
 
-`.env` needs these values (see `.env.example`):
+`.env` needs these values:
 
 - `RECALL_API_KEY`: your Recall key.
 - `RECALL_WEBHOOK_TOKEN`: a private random token; one is already generated locally.
@@ -62,7 +95,7 @@ Meet. If the bot does not appear, check its ID in the Recall dashboard.
 Meeting audio → Recall → ElevenLabs Scribe → Recall webhook → ngrok → server → browser
 ```
 
-- `server/index.ts` starts the two Express listeners and creates the shared transcript map.
+- `server/index.ts` starts one production listener (two locally) and creates the shared transcript map.
 - `server/meeting.ts` creates meeting bots, receives transcripts, and pushes them to your browser.
 - `server/voice.ts` prepares handoff context and handles voice start, continue, and stop.
 - `src/App.tsx` handles joining and displays the transcript.
