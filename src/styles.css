@@ -1,0 +1,9 @@
+body {
+  font-family: sans-serif;
+  margin: 24px;
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
